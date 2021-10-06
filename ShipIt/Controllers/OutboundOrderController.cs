@@ -27,6 +27,7 @@ namespace ShipIt.Controllers
         {
             Log.Info(String.Format("Processing outbound order: {0}", request));
 
+            // Makes a list of all gtins from the request
             var gtins = new List<String>();
             foreach (var orderLine in request.OrderLines)
             {
@@ -37,8 +38,13 @@ namespace ShipIt.Controllers
                 gtins.Add(orderLine.gtin);
             }
 
+            // From gtins get product models - i.e. prodoct info from database.
             var productDataModels = _productRepository.GetProductsByGtin(gtins);
+
+            // Dictionary where key = product Gtin : vlaue = new Product
             var products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
+
+            // option 1 - lorry calc
 
             var lineItems = new List<StockAlteration>();
             var productIds = new List<int>();
@@ -92,8 +98,11 @@ namespace ShipIt.Controllers
             {
                 throw new InsufficientStockException(string.Join("; ", errors));
             }
-
+            
+            var numOfLorries = GetTrucksRequired(products);
             _stockRepository.RemoveStock(request.WarehouseId, lineItems);
         }
+
+        private double GetTrucksRequired(Dictionary<string, Product> products) => Math.Round(products.Values.Sum(item => item.Weight)/2000);
     }
 }
