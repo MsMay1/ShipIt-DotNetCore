@@ -30,18 +30,19 @@ namespace ShipIt.Controllers
         [HttpGet("{warehouseId}")]
         public InboundOrderResponse Get([FromRoute] int warehouseId)
         {
+            // Something about indices, and too many calls to backend.
             Log.Info("orderIn for warehouseId: " + warehouseId);
 
-            var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId));
+            var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId)); // call to backend
 
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
-            var allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
+            var allStock = _stockRepository.GetStockByWarehouseId(warehouseId); // call to backend
 
             Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
             foreach (var stock in allStock)
             {
-                Product product = new Product(_productRepository.GetProductById(stock.ProductId));
+                Product product = new Product(_productRepository.GetProductById(stock.ProductId)); // call to backend
                 if(stock.held < product.LowerThreshold && !product.Discontinued)
                 {
                     Company company = new Company(_companyRepository.GetCompany(product.Gcp));
@@ -97,7 +98,7 @@ namespace ShipIt.Controllers
                 gtins.Add(orderLine.gtin);
             }
 
-            IEnumerable<ProductDataModel> productDataModels = _productRepository.GetProductsByGtin(gtins);
+            IEnumerable<ProductDataModel> productDataModels = _productRepository.GetProductsByGtin(gtins); // call to backend
             Dictionary<string, Product> products = productDataModels.ToDictionary(p => p.Gtin, p => new Product(p));
 
             Log.Debug(String.Format("Retrieved products to verify manifest: {0}", products));
