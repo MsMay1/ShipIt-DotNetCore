@@ -7,8 +7,7 @@ namespace ShipIt.Models.DataModels
     {
         [DatabaseColumnName("p_id")]
         public int ProductId { get; set; }
-        [DatabaseColumnName("w_id")]
-        public int WarehouseId { get; set; }
+
         [DatabaseColumnName("hld")]
         public int Held { get; set; }
 
@@ -24,9 +23,6 @@ namespace ShipIt.Models.DataModels
         [DatabaseColumnName("l_th")]
         public int LowerThreshold { get; set; }
 
-        [DatabaseColumnName("ds")]
-        public int Discontinued { get; set; }
-
         [DatabaseColumnName("min_qt")]
         public int MinimumOrderQuantity { get; set; }
 
@@ -37,13 +33,11 @@ namespace ShipIt.Models.DataModels
         public InboundOrderModel(InboundOrder apiModel)
         {
             ProductId = apiModel.ProductId;
-            WarehouseId = apiModel.WarehouseId;
             Held = apiModel.Held;
             Gtin = apiModel.Gtin;
             Gcp = apiModel.Gcp;
             Name = apiModel.Name;
             LowerThreshold = apiModel.LowerThreshold;
-            Discontinued = apiModel.Discontinued ? 1 : 0;
             MinimumOrderQuantity = apiModel.MinimumOrderQuantity;
         }
     }

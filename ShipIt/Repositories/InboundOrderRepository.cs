@@ -17,9 +17,9 @@ namespace ShipIt.Repositories
         public List<InboundOrderModel> GetProductStockByWarehouseId (int warehouseId)
         {
             string sql = 
-                "SELECT stock.p_id, w_id, hld, gtin_cd, gcp_cd, gtin_nm, l_th, ds, min_qt " + 
+                "SELECT stock.p_id, hld, gtin_cd, gcp_cd, gtin_nm, l_th, min_qt " + 
                 "FROM stock " +
-                "JOIN gtin on stock.p_id = gtin.p_id " +
+                "JOIN gtin ON stock.p_id = gtin.p_id " +
                 "WHERE stock.w_id = @warehouseId " + 
                 "AND hld < l_th " +
                 "AND ds = 0";
