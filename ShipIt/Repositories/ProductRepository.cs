@@ -42,20 +42,7 @@ namespace ShipIt.Repositories
                 String.Join("','", gtins));
             return base.RunGetQuery(sql, reader => new ProductDataModel(reader), "No products found with given gtin ids", null);
         }
-        // public Book GetBook(int bookId)
-        // {
 
-        //     Book book = _libraryContext.Books
-        //         .Where(b => b.ID == bookId)
-        //         .FirstOrDefault();
-        //     return book;
-        // }
-
-        public List<ProductDataModel> GetProductsByIds(List<int> id)
-        {
-            string sql = "SELECT p_id, gtin_cd, gcp_cd, gtin_nm, m_g, l_th, ds, min_qt FROM gtin WHERE p_id = @p_id";
-
-        }
         public ProductDataModel GetProductById(int id)
         {
 
