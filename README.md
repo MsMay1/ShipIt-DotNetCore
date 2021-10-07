@@ -5,14 +5,19 @@ Open the project in VSCode.
 VSCode should automatically set up and install everything you'll need apart from the database connection!
 
 ### Setting up the Database.
-Create 2 new postgres databases - one for the main program and one for our test database.
-Ask a team member for a dump of the production databases to create and populate your tables.
+Create 2 new postgres databases from your terminal:
+- sudo -u postgres psql
+- CREATE DATABASE shipit_dev
+- CREATE DATABASE shipit_test
+- \q   (to exit)
 
-Then for each of the projects, add a `.env` file at the root of the project.
-That file should contain a property named `POSTGRES_CONNECTION_STRING`.
-It should look something like this:
+Ask a team member for a dump of the production databases to create and populate your tables:
+- psql -U postgres -d postgresql://localhost:5432/shipit_dev -f ShipIt-database-dump.sql
+- psql -U postgres -d postgresql://localhost:5432/shipit_test -f ShipIt-database-dump.sql
+
+Then for each of the projects, add a `.env` file at the root of the project with the following:
 ```
-POSTGRES_CONNECTION_STRING=Server=127.0.0.1;Port=5432;Database=your_database_name;User Id=your_database_user; Password=your_database_password;
+POSTGRES_CONNECTION_STRING=Server=127.0.0.1;Port=5432;Database=[database_name];User Id=[your_database_user]; Password=[your_database_password];
 ```
 
 ## Running The API
