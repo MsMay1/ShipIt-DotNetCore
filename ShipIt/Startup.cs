@@ -22,6 +22,7 @@ namespace ShipIt_DotNetCore
             services.AddControllers();
 
             services.AddTransient<ICompanyRepository, CompanyRepository>();
+            services.AddTransient<IInboundOrderRepository, InboundOrderRepository>();
             services.AddTransient<IEmployeeRepository, EmployeeRepository>();
             services.AddTransient<IEmployeeRepository, EmployeeRepository>();
             services.AddTransient<IProductRepository, ProductRepository>();

@@ -10,7 +10,7 @@ namespace ShipIt.Models.DataModels
         public int WarehouseId { get; set; }
         [DatabaseColumnName("hld")]
         public int held { get; set; }
-
+        
         public StockDataModel(IDataReader dataReader): base(dataReader) { }
         
         public StockDataModel() {}

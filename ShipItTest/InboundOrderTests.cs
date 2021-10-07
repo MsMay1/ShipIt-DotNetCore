@@ -15,6 +15,7 @@ namespace ShipItTest
     {
         InboundOrderController inboundOrderController = new InboundOrderController(
             new EmployeeRepository(),
+            new InboundOrderRepository(),
             new CompanyRepository(),
             new ProductRepository(),
             new StockRepository()

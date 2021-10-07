@@ -18,11 +18,13 @@ namespace ShipIt.Controllers
         private readonly ICompanyRepository _companyRepository;
         private readonly IProductRepository _productRepository;
         private readonly IStockRepository _stockRepository;
+        private readonly IInboundOrderRepository _inboundOrderRepository;
 
-        public InboundOrderController(IEmployeeRepository employeeRepository, ICompanyRepository companyRepository, IProductRepository productRepository, IStockRepository stockRepository)
+        public InboundOrderController(IEmployeeRepository employeeRepository, IInboundOrderRepository inboundOrderRepository, ICompanyRepository companyRepository, IProductRepository productRepository, IStockRepository stockRepository)
         {
             _employeeRepository = employeeRepository;
             _stockRepository = stockRepository;
+            _inboundOrderRepository = inboundOrderRepository;
             _companyRepository = companyRepository;
             _productRepository = productRepository;
         }
@@ -30,39 +32,34 @@ namespace ShipIt.Controllers
         [HttpGet("{warehouseId}")]
         public InboundOrderResponse Get([FromRoute] int warehouseId)
         {
-            // Something about indices, and too many calls to backend.
             Log.Info("orderIn for warehouseId: " + warehouseId);
 
-            var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId)); // call to backend
-
+            var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId));
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
-            var allStock = _stockRepository.GetStockByWarehouseId(warehouseId); // call to backend
+            IEnumerable<InboundOrder> allProductStock = _inboundOrderRepository.GetProductStockByWarehouseId(warehouseId).Select(product => new InboundOrder(product));
 
             Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
-            foreach (var stock in allStock)
+            foreach (var productStock in allProductStock)
             {
-                Product product = new Product(_productRepository.GetProductById(stock.ProductId)); // call to backend
-                if(stock.held < product.LowerThreshold && !product.Discontinued)
+                Company company = new Company(_companyRepository.GetCompany(productStock.Gcp));
+
+                var orderQuantity = Math.Max(productStock.LowerThreshold * 3 - productStock.Held, productStock.MinimumOrderQuantity);
+
+                if (!orderlinesByCompany.ContainsKey(company))
                 {
-                    Company company = new Company(_companyRepository.GetCompany(product.Gcp));
-
-                    var orderQuantity = Math.Max(product.LowerThreshold * 3 - stock.held, product.MinimumOrderQuantity);
-
-                    if (!orderlinesByCompany.ContainsKey(company))
-                    {
-                        orderlinesByCompany.Add(company, new List<InboundOrderLine>());
-                    }
-
-                    orderlinesByCompany[company].Add( 
-                        new InboundOrderLine()
-                        {
-                            gtin = product.Gtin,
-                            name = product.Name,
-                            quantity = orderQuantity
-                        });
+                    orderlinesByCompany.Add(company, new List<InboundOrderLine>());
                 }
+
+                orderlinesByCompany[company].Add(
+                    new InboundOrderLine()
+                    {
+                        gtin = productStock.Gtin,
+                        name = productStock.Name,
+                        quantity = orderQuantity
+                    });
             }
+
 
             Log.Debug(String.Format("Constructed order lines: {0}", orderlinesByCompany));
 
