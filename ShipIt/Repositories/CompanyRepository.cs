@@ -13,6 +13,7 @@ namespace ShipIt.Repositories
     {
         int GetCount();
         CompanyDataModel GetCompany(string gcp);
+        IEnumerable<CompanyDataModel> GetCompaniesByIds(IEnumerable<string> gcps);
         void AddCompanies(IEnumerable<Company> companies);
     }
 
@@ -49,6 +50,13 @@ namespace ShipIt.Repositories
             }
 
             base.RunTransaction(sql, parametersList);
+        }
+
+        public IEnumerable<CompanyDataModel> GetCompaniesByIds(IEnumerable<string> gcps)
+        {
+            string sql = String.Format("SELECT * FROM gcp WHERE gcp_cd IN ('{0}')",
+                String.Join("','", gcps));
+            return base.RunGetQuery(sql, reader => new CompanyDataModel(reader), "No company found with given gcp ids", null);
         }
     }
 

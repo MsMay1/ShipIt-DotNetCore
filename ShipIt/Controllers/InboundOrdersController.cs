@@ -29,6 +29,8 @@ namespace ShipIt.Controllers
             _productRepository = productRepository;
         }
 
+        private int GetOrderQuantity(InboundOrder productStock) => Math.Max(productStock.LowerThreshold * 3 - productStock.Held, productStock.MinimumOrderQuantity);
+
         [HttpGet("{warehouseId}")]
         public InboundOrderResponse Get([FromRoute] int warehouseId)
         {
@@ -39,27 +41,22 @@ namespace ShipIt.Controllers
 
             IEnumerable<InboundOrder> allProductStock = _inboundOrderRepository.GetProductStockByWarehouseId(warehouseId).Select(product => new InboundOrder(product));
 
-            Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
-            foreach (var productStock in allProductStock)
-            {
-                Company company = new Company(_companyRepository.GetCompany(productStock.Gcp));
-
-                var orderQuantity = Math.Max(productStock.LowerThreshold * 3 - productStock.Held, productStock.MinimumOrderQuantity);
-
-                if (!orderlinesByCompany.ContainsKey(company))
+            Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany =
+            _companyRepository
+            .GetCompaniesByIds(allProductStock.Select(productStock => productStock.Gcp)) // Enumerable<CompanyDataModel>
+            .Select(companyDataModel => new Company(companyDataModel)) // Enumerable<Company>
+            .Distinct()
+            .ToDictionary(company => company,
+            company => allProductStock
+                .Where(productStock => productStock.Gcp == company.Gcp)
+                .Select(productStock => new InboundOrderLine()
                 {
-                    orderlinesByCompany.Add(company, new List<InboundOrderLine>());
-                }
-
-                orderlinesByCompany[company].Add(
-                    new InboundOrderLine()
-                    {
-                        gtin = productStock.Gtin,
-                        name = productStock.Name,
-                        quantity = orderQuantity
-                    });
-            }
-
+                    gtin = productStock.Gtin,
+                    name = productStock.Name,
+                    quantity = GetOrderQuantity(productStock)
+                })
+                        .ToList()
+            );
 
             Log.Debug(String.Format("Constructed order lines: {0}", orderlinesByCompany));
 
