@@ -15,6 +15,7 @@ namespace ShipIt.Repositories
         int GetCount();
         int GetWarehouseCount();
         EmployeeDataModel GetEmployeeByName(string name);
+        EmployeeDataModel GetEmployeeById(int id);
         IEnumerable<EmployeeDataModel> GetEmployeesByWarehouseId(int warehouseId);
         EmployeeDataModel GetOperationsManager(int warehouseId);
         void AddEmployees(IEnumerable<Employee> employees);
@@ -81,6 +82,14 @@ namespace ShipIt.Repositories
             return base.RunSingleGetQuery(sql, reader => new EmployeeDataModel(reader),noProductWithIdErrorMessage, parameter);
         }
 
+        public EmployeeDataModel GetEmployeeById(int id)
+        {
+            string sql = "SELECT name, w_id, role, ext FROM em WHERE em_id = @id";
+            var parameter = new NpgsqlParameter("@id", id);
+            string noProductWithIdErrorMessage = string.Format("No employees found with id: {0}", id);
+            return base.RunSingleGetQuery(sql, reader => new EmployeeDataModel(reader),noProductWithIdErrorMessage, parameter);
+        }
+
         public IEnumerable<EmployeeDataModel> GetEmployeesByWarehouseId(int warehouseId)
         {
 
@@ -133,6 +142,15 @@ namespace ShipIt.Repositories
             {
                 throw new InvalidStateException("Unexpectedly deleted " + rowsDeleted + " rows, but expected a single update");
             }
+        }
+
+        public void RemoveEmployee(int id)
+        {
+            string sql = "DELETE FROM em WHERE em_id = @id";
+            var parameter = new NpgsqlParameter("@id", id);
+            var rowsDeleted = RunSingleQueryAndReturnRecordsAffected(sql, parameter);
+            if (rowsDeleted == 0)
+                throw new NoSuchEntityException("Incorrect result size: expected 1, actual 0");
         }
     }
 }

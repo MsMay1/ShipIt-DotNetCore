@@ -22,11 +22,29 @@ namespace ShipIt.Controllers
         }
 
         [HttpGet("")]
-        public EmployeeResponse Get([FromQuery] string name)
+        public EmployeeResponse Get([FromQuery] string name =  null, [FromQuery] string id =  null)
         {
+            Employee employee;
+            
+            if (id != null)
+            {
+                Log.Info($"Looking up employee by id: {id}");
+                int employee_id;
+
+                if(Int32.TryParse(id, out employee_id))
+                {
+                    employee = new Employee(_employeeRepository.GetEmployeeById(employee_id));
+                    Log.Info("Found employee: " + employee);
+                    return new EmployeeResponse(employee);
+                }
+
+                throw new MalformedRequestException("Could not parse id.");
+
+            }
+
             Log.Info($"Looking up employee by name: {name}");
 
-            var employee = new Employee(_employeeRepository.GetEmployeeByName(name));
+            employee = new Employee(_employeeRepository.GetEmployeeByName(name));
 
             Log.Info("Found employee: " + employee);
             return new EmployeeResponse(employee);
